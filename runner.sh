@@ -4,27 +4,34 @@ outputdir=/PLEASE_SET_ME
 
 hostname="`hostname`"
 
-# We wrap both mongostat and vmstat, as they both don't print the date/time.
-mongostat_wrapper() {
+# For commands that don't print the date/time.
+date_wrapper() {
 	date "+%Y%m%d-%H%M%S-%z"
-	mongostat -n 86400 1 "$@"
-}
-
-vmstat_wrapper() {
-	date "+%Y%m%d-%H%M%S-%z"
-	vmstat 1 86400
+	"$@"
 }
 
 program="$1"
 case "$program" in
-	iostat)  set -- iostat -xt 1 86400 ;;
-	mongostat)  set -- mongostat_wrapper "$@" ;;
-	mongotop)  set -- mongotop "$@" ;;
-	vmstat) set -- vmstat_wrapper ;;
-	sar_pagefaults) set -- sar -B 1 ;;
-	serverstatus) set -- mongo --eval "while(true) {print(JSON.stringify(db.serverStatus({tcmalloc:1}))); sleep(1000)}" ;;
+	iostat)
+		set -- iostat -xt 1 86400
+		;;
+	vmstat)
+		set -- date_wrapper vmstat 1 86400
+		;;
+	sar_pagefaults)
+		set -- sar -B 1
+		;;
+	mongostat)
+		set -- date_wrapper mongostat -n 86400 1 "$@"
+		;;
+	mongotop)
+		set -- mongotop "$@"
+		;;
+	serverstatus)
+		set -- date_wrapper mongo --eval "while(true) {print(JSON.stringify(db.serverStatus({tcmalloc:1}))); sleep(1000)}" "$@"
+		;;
 	*)
-		echo "$0: ERROR: outputdir \"$outputdir\" is not writable, ABORTING" 1>&2
+		echo "$0: ERROR: unknown program \"$program\"" 1>&2
 		exit 1
 		;;
 esac
