@@ -28,7 +28,7 @@ case "$program" in
 		set -- mongotop "$@"
 		;;
 	serverstatus)
-		set -- date_wrapper mongo --eval "while(true) {print(JSON.stringify(db.serverStatus({tcmalloc:1}))); sleep(1000)}" "$@"
+		set -- mongo --eval "while(true) {print(JSON.stringify(db.serverStatus({tcmalloc:1}))); sleep(1000)}" "$@"
 		;;
 	*)
 		echo "$0: ERROR: unknown program \"$program\"" 1>&2
